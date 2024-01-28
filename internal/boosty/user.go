@@ -1,4 +1,4 @@
-package models
+package boosty
 
 type User struct {
 	Id        int    `json:"id"`

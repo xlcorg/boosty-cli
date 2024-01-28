@@ -1,21 +1,21 @@
-package get
+package posts
 
 import (
+	"boosty/internal/boosty"
+	"boosty/pkg/util"
 	"context"
 	"fmt"
-	"time"
-
-	"boosty/internal/clients/boosty"
 	"github.com/spf13/cobra"
+	"time"
 )
 
 var postsLimit int
 
-func newCmdGetPosts() *cobra.Command {
+func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "posts [blogName]",
 		Short: "Display posts",
-		Args:  cobra.MinimumNArgs(0),
+		Args:  cobra.NoArgs,
 		Run:   executePostsCommand,
 	}
 
@@ -28,16 +28,16 @@ func executePostsCommand(cmd *cobra.Command, args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	checkError(verify(cmd, args))
+	blogName, _ := cmd.Flags().GetString("author")
+	util.CheckError(util.VerifyName(blogName))
 
-	blogName := args[0]
 	client, err := boosty.NewClient(blogName)
-	checkError(err)
+	util.CheckError(err)
 
 	fmt.Printf("Getting %d posts: %s\n---\n", postsLimit, blogName)
 
 	posts, err := client.GetPosts(ctx, postsLimit)
-	checkError(err)
+	util.CheckError(err)
 
 	for _, post := range posts {
 		fmt.Println(post)

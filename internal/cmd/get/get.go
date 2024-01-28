@@ -1,30 +1,36 @@
 package get
 
 import (
-	"bytes"
+	"boosty/pkg/util"
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 	"runtime"
 	"time"
 
-	"boosty/internal/clients/boosty"
+	"boosty/internal/boosty"
 	"github.com/canhlinh/hlsdl"
-	"github.com/go-resty/resty/v2"
-	"github.com/grafov/m3u8"
 	"github.com/spf13/cobra"
 )
+
+var blogName string
 
 func NewCommand() *cobra.Command {
 	var cmdGet = &cobra.Command{
 		Use:   "get [command]",
 		Short: "Display one or many resources.",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.ExactArgs(1),
 		Run:   runGetCommand,
 	}
 
-	cmdGet.AddCommand(newCmdGetInfo(), newCmdGetPosts())
+	//cmdGetInfo := newCmdGetInfo()
+
+	//cmdGet.AddCommand(cmdGetInfo, newCmdGetPosts())
+
+	//cmdGetInfo.PersistentFlags().StringVarP(&blogName, "author", "a", "", "author blog")
+	//cmdGet.PersistentFlags().StringVarP(&blogName, "author", "a", "", "author blog")
+	//_ = cmdGetInfo.MarkPersistentFlagRequired("author")
+	//_ = cmdGet.MarkPersistentFlagRequired("author")
 
 	return cmdGet
 }
@@ -33,8 +39,8 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	blogName, err := verifyName(args[0])
-	checkError(err)
+	blogName, _ := cmd.Flags().GetString("author")
+	util.CheckError(util.VerifyName(blogName))
 
 	videoId := args[1]
 	dir := ""
@@ -43,12 +49,12 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 	}
 
 	client, err := boosty.NewClient(blogName)
-	checkError(err)
+	util.CheckError(err)
 
 	fmt.Printf("Searching video with ID %s from %s:\n---\n", videoId, blogName)
 
 	posts, err := client.GetPosts(ctx, 10)
-	checkError(err)
+	util.CheckError(err)
 
 	for _, post := range posts {
 		videos := post.GetVideos()
@@ -59,9 +65,9 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 				fmt.Println("---")
 				fmt.Println("Searching for the best quality...")
 
-				p, err := getm3u8MasterPlaylist(video.PlaylistUrl)
-				checkError(err)
-				bestQuality := getMaxQualityVariant(p.Variants)
+				p, err := client.GetM3u8MasterPlaylist(video.PlaylistUrl)
+				util.CheckError(err)
+				bestQuality := boosty.GetMaxQualityVariant(p.Variants)
 				playlistUrl, _ := url.Parse(video.PlaylistUrl)
 				downloadUrl := "https://" + playlistUrl.Host + bestQuality.URI
 				fmt.Printf("Best Quality URL: %s\n", downloadUrl)
@@ -72,7 +78,7 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 
 				filepath, err := hlsDL.Download()
 				if err != nil {
-					checkError(err)
+					util.CheckError(err)
 				}
 
 				fmt.Println("Saved => ", filepath)
@@ -81,36 +87,4 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 		}
 	}
 	fmt.Println("Error: Video not found")
-}
-
-func getm3u8MasterPlaylist(url string) (*m3u8.MasterPlaylist, error) {
-	client := resty.New()
-	client.SetRetryCount(5).SetRetryWaitTime(time.Second)
-	resp, err := client.R().Get(url)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode() != 200 {
-		return nil, errors.New(resp.Status())
-	}
-	p, t, err := m3u8.Decode(*bytes.NewBuffer(resp.Body()), false)
-	if err != nil {
-		return nil, err
-	}
-	if t != m3u8.MASTER {
-		return nil, errors.New("not master playlist")
-	}
-	return p.(*m3u8.MasterPlaylist), err
-}
-
-func getMaxQualityVariant(v []*m3u8.Variant) *m3u8.Variant {
-	var res *m3u8.Variant
-	maxLen := 0
-	for _, x := range v {
-		if len(x.Resolution) > maxLen {
-			res = x
-			maxLen = len(x.Resolution)
-		}
-	}
-	return res
 }

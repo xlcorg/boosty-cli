@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"boosty/internal/clients/boosty"
-	"boosty/internal/clients/boosty/models"
+	"boosty/internal/client/boosty"
 	"boosty/pkg/logger"
 )
 
@@ -40,7 +39,7 @@ func main() {
 
 		for _, pd := range post.Details {
 			fmt.Println(pd.Type)
-			if pd.Type == models.VideoDataType {
+			if pd.Type == boosty.VideoDataType {
 				masterUrl, err := pd.GetMasterPlaylistUrl()
 				if err != nil {
 					logger.Error(ctx, err, "GetMasterPlaylistUrl:")

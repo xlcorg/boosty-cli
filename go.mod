@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/canhlinh/hlsdl v0.0.0-20240124081241-e7eb3b498559
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/grafov/m3u8 v0.12.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.1
@@ -12,7 +13,6 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-resty/resty/v2 v2.11.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect

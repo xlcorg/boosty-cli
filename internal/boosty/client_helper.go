@@ -1,20 +1,20 @@
 package boosty
 
 import (
+	"boosty/internal/boosty/endpoint"
+	"boosty/pkg/logger"
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/grafov/m3u8"
 	"io"
 	"net/url"
 	"strconv"
-
-	"boosty/internal/clients/boosty/endpoint"
-	"boosty/internal/clients/boosty/models"
-	"boosty/pkg/logger"
 )
 
-func (c *Client) GetPosts(ctx context.Context, limit int) (models.Posts, error) {
+func (c *Client) GetPosts(ctx context.Context, limit int) (Posts, error) {
 	values := url.Values{}
 	values.Add("limit", strconv.Itoa(limit))
 
@@ -23,20 +23,21 @@ func (c *Client) GetPosts(ctx context.Context, limit int) (models.Posts, error) 
 		return nil, err
 	}
 
-	var data models.V1GetPostsResponse
+	var data V1GetPostsResponse
 	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("parse body: %w", err)
 	}
 
-	var res = make([]*models.Post, 0, len(data.Data))
+	var res = make([]*Post, 0, len(data.Data))
 	for i := 0; i < len(data.Data); i++ {
 		res = append(res, &data.Data[i])
 	}
+
 	return res, nil
 }
 
-func (c *Client) GetBlog(ctx context.Context) (*models.Blog, error) {
-	var res models.V1GetBlogResponse
+func (c *Client) GetBlog(ctx context.Context) (*Blog, error) {
+	var res V1GetBlogResponse
 
 	body, err := c.sendRequest(ctx, endpoint.GetBlog, nil)
 	if err != nil {
@@ -47,7 +48,7 @@ func (c *Client) GetBlog(ctx context.Context) (*models.Blog, error) {
 		return nil, fmt.Errorf("parse body: %w", err)
 	}
 
-	return &models.Blog{
+	return &Blog{
 		Title:        res.Title,
 		URL:          res.BlogUrl,
 		Stats:        res.Count,
@@ -85,4 +86,22 @@ func (c *Client) sendRequest(ctx context.Context, e endpoint.Endpoint, values ur
 	}
 
 	return bytes.NewReader(resp.Body()), nil
+}
+
+func (c *Client) GetM3u8MasterPlaylist(url string) (*m3u8.MasterPlaylist, error) {
+	resp, err := c.http.R().Get(url)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != 200 {
+		return nil, errors.New(resp.Status())
+	}
+	p, t, err := m3u8.Decode(*bytes.NewBuffer(resp.Body()), false)
+	if err != nil {
+		return nil, err
+	}
+	if t != m3u8.MASTER {
+		return nil, errors.New("not master playlist")
+	}
+	return p.(*m3u8.MasterPlaylist), err
 }

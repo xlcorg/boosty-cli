@@ -1,13 +1,13 @@
 package boosty
 
 import (
+	"boosty/internal/boosty/endpoint"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
-	"boosty/internal/clients/boosty/endpoint"
 	"github.com/go-resty/resty/v2"
 )
 

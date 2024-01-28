@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"regexp"
 	"runtime"
+	"time"
 )
 
 func GetMaxOpenConns() int {
@@ -30,4 +31,8 @@ func ValidateEmail(email string) bool {
 // context.DeadlineExceeded
 func IsDeadlineExceeded(err error) bool {
 	return errors.Is(err, context.DeadlineExceeded)
+}
+
+func UnixSecondsToTime(timestamp int64) time.Time {
+	return time.Unix(timestamp, 0)
 }
