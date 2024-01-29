@@ -1,11 +1,12 @@
 package info
 
 import (
-	"boosty/internal/boosty"
-	"boosty/pkg/util"
 	"context"
 	"fmt"
 	"time"
+
+	"boosty/internal/boosty"
+	"boosty/pkg/util"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,13 @@ func executeCommand(cmd *cobra.Command, args []string) {
 	blogName, _ := cmd.Flags().GetString("author")
 	util.CheckError(util.VerifyName(blogName))
 
-	client, err := boosty.NewClient(blogName)
+	config := boosty.NewConfig()
+	token, _ := cmd.Flags().GetString("token")
+	if token != "" {
+		config = config.WithToken(token)
+	}
+
+	client, err := boosty.NewClientWithConfig(blogName, config)
 	util.CheckError(err)
 
 	fmt.Printf("Getting information about: %s\n---\n", blogName)

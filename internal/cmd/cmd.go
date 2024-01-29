@@ -8,20 +8,14 @@ import (
 )
 
 var author string
+var token string
 
 func NewDefaultBoostyCommand() *cobra.Command {
 	var rootCmd = &cobra.Command{Use: "boosty"}
 
-	// add config flag
-	rootCmd.PersistentFlags().StringVarP(
-		&author,
-		"author",
-		"a",
-		"",
-		"blog author")
+	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Bearer token")
+	rootCmd.PersistentFlags().StringVarP(&author, "author", "a", "", "Blog name")
 	_ = rootCmd.MarkPersistentFlagRequired("author")
-
-	//viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
 
 	rootCmd.AddCommand(get.NewCommand())
 	rootCmd.AddCommand(info.NewCommand())

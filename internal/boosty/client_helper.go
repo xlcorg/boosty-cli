@@ -1,17 +1,18 @@
 package boosty
 
 import (
-	"boosty/internal/boosty/endpoint"
-	"boosty/pkg/logger"
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/grafov/m3u8"
 	"io"
 	"net/url"
 	"strconv"
+
+	"boosty/internal/boosty/endpoint"
+	"boosty/pkg/logger"
+	"github.com/grafov/m3u8"
 )
 
 func (c *Client) GetPosts(ctx context.Context, limit int) (Posts, error) {
@@ -65,6 +66,9 @@ func (c *Client) sendRequest(ctx context.Context, e endpoint.Endpoint, values ur
 	req := c.http.R().SetQueryParamsFromValues(values)
 	if c.debug {
 		req.EnableTrace()
+	}
+	if c.token != "" {
+		req.SetAuthToken(c.token)
 	}
 
 	resp, err := req.Get(requestUrl)

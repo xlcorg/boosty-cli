@@ -12,6 +12,7 @@ const (
 
 type Config struct {
 	endpoint     string
+	token        string
 	retryTimeout time.Duration
 	retryCount   int
 	debug        bool
@@ -24,6 +25,12 @@ func NewConfig() Config {
 		retryCount:   defaultRetryCount,
 		debug:        false,
 	}
+}
+
+// WithToken sets Bearer token
+func (c Config) WithToken(token string) Config {
+	c.token = token
+	return c
 }
 
 // WithEndpoint sets boosty web api baseAPI

@@ -1,18 +1,20 @@
 package boosty
 
 import (
-	"boosty/internal/boosty/endpoint"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
+	"boosty/internal/boosty/endpoint"
+
 	"github.com/go-resty/resty/v2"
 )
 
 type Client struct {
 	blogName  string
+	token     string
 	baseAPI   *url.URL
 	endpoints endpoint.Config
 	http      *resty.Client
@@ -32,13 +34,15 @@ func NewClientWithConfig(blogName string, config Config) (*Client, error) {
 	return &Client{
 		debug:     config.debug,
 		blogName:  blogName,
+		token:     config.token,
 		baseAPI:   baseURL,
 		endpoints: endpoint.NewEndpointConfig(baseURL.String(), blogName),
 		http: resty.NewWithClient(&http.Client{Transport: newTransport(), Timeout: config.retryTimeout}).
 			SetDebug(false).
 			SetRetryCount(config.retryCount).
 			SetRetryMaxWaitTime(config.retryTimeout).
-			SetDisableWarn(true),
+			SetDisableWarn(true).
+			SetLogger(new(nullLogger)),
 	}, nil
 }
 
