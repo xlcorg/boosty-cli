@@ -10,8 +10,11 @@ import (
 var author string
 var token string
 
-func NewDefaultBoostyCommand() *cobra.Command {
-	var rootCmd = &cobra.Command{Use: "boosty"}
+func NewDefaultBoostyCommand(version string) *cobra.Command {
+	var rootCmd = &cobra.Command{
+		Use:     "boosty",
+		Version: version,
+	}
 
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Bearer token")
 	rootCmd.PersistentFlags().StringVarP(&author, "author", "a", "", "Blog name")

@@ -7,7 +7,7 @@ run:
 
 .PHONY: build
 build:
-	go build -o bin/boosty cmd/boosty/boosty.go
+	go build -v -o bin/boosty -ldflags "-X main.version=v0.0.2" cmd/boosty/boosty.go
 
 .PHONY: docker-build
 docker-build:
