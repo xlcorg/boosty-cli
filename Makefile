@@ -7,7 +7,7 @@ run:
 
 .PHONY: build
 build:
-	go build -o bin/boosty cmd/boosty/main.go
+	go build -o bin/boosty cmd/boosty/boosty.go
 
 .PHONY: docker-build
 docker-build:
@@ -16,3 +16,7 @@ docker-build:
 .PHONY: test
 test:
 	go test ${GO_PACKAGES}
+
+.PHONY: build
+install:
+	go install cmd/boosty/boosty.go
