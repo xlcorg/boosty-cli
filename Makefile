@@ -1,11 +1,11 @@
 
 GO_PACKAGES=$(shell go list ./...)
 
-FLAGS="-X main.version=v0.0.3"
+FLAGS="-X main.version=v0.0.4"
 
 .PHONY: run
 run:
-	go run cmd/boosty/main.go
+	make build && clear && ./bin/boosty -a dinablin $(ARGS)
 
 .PHONY: build
 build:

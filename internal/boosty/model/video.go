@@ -1,4 +1,4 @@
-package boosty
+package model
 
 import (
 	"fmt"

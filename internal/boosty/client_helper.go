@@ -11,11 +11,12 @@ import (
 	"strconv"
 
 	"boosty/internal/boosty/endpoint"
+	"boosty/internal/boosty/model"
 	"boosty/pkg/logger"
 	"github.com/grafov/m3u8"
 )
 
-func (c *Client) GetPosts(ctx context.Context, limit int) (Posts, error) {
+func (c *Client) GetPosts(ctx context.Context, limit int) (model.Posts, error) {
 	values := url.Values{}
 	values.Add("limit", strconv.Itoa(limit))
 
@@ -24,12 +25,12 @@ func (c *Client) GetPosts(ctx context.Context, limit int) (Posts, error) {
 		return nil, err
 	}
 
-	var data V1GetPostsResponse
+	var data model.V1GetPostsResponse
 	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("parse body: %w", err)
 	}
 
-	var res = make([]*Post, 0, len(data.Data))
+	var res = make([]*model.Post, 0, len(data.Data))
 	for i := 0; i < len(data.Data); i++ {
 		res = append(res, &data.Data[i])
 	}
@@ -37,8 +38,8 @@ func (c *Client) GetPosts(ctx context.Context, limit int) (Posts, error) {
 	return res, nil
 }
 
-func (c *Client) GetBlog(ctx context.Context) (*Blog, error) {
-	var res V1GetBlogResponse
+func (c *Client) GetBlog(ctx context.Context) (*model.Blog, error) {
+	var res model.V1GetBlogResponse
 
 	body, err := c.sendRequest(ctx, endpoint.GetBlog, nil)
 	if err != nil {
@@ -49,7 +50,7 @@ func (c *Client) GetBlog(ctx context.Context) (*Blog, error) {
 		return nil, fmt.Errorf("parse body: %w", err)
 	}
 
-	return &Blog{
+	return &model.Blog{
 		Title:        res.Title,
 		URL:          res.BlogUrl,
 		Stats:        res.Count,

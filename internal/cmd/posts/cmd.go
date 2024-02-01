@@ -14,10 +14,11 @@ var postsLimit int
 
 func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "posts [blogName]",
-		Short: "Display posts",
-		Args:  cobra.NoArgs,
-		Run:   executePostsCommand,
+		Use:     "posts [blogName]",
+		Short:   "Display posts",
+		Args:    cobra.NoArgs,
+		Run:     executePostsCommand,
+		Aliases: []string{"ls", "last"},
 	}
 
 	cmd.Flags().IntVarP(&postsLimit, "limit", "l", 3, "limit of posts")
@@ -28,6 +29,10 @@ func NewCommand() *cobra.Command {
 func executePostsCommand(cmd *cobra.Command, args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	if cmd.CalledAs() == "last" {
+		postsLimit = 1
+	}
 
 	blogName, _ := cmd.Flags().GetString("author")
 	util.CheckError(util.VerifyName(blogName))

@@ -1,7 +1,6 @@
-package tests
+package model
 
 import (
-	"boosty/internal/client/boosty"
 	"bytes"
 	_ "embed"
 	"encoding/json"
@@ -21,7 +20,7 @@ var getPostResponseData []byte
 func TestParse(t *testing.T) {
 
 	t.Run("Parse V1GetBlogResponse", func(t *testing.T) {
-		var blog boosty.V1GetBlogResponse
+		var blog V1GetBlogResponse
 		err := json.Unmarshal(v1blogresponse, &blog)
 		assert.NoError(t, err)
 
@@ -29,7 +28,7 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("Parse V1GetPostsResponse", func(t *testing.T) {
-		var posts boosty.V1GetPostsResponse
+		var posts V1GetPostsResponse
 		err := json.Unmarshal(getPostResponseData, &posts)
 		assert.NoError(t, err)
 
@@ -55,7 +54,7 @@ func TestParsePlaylist(t *testing.T) {
 	assert.Equal(t, m3u8.MASTER, listType)
 	masterpl := p.(*m3u8.MasterPlaylist)
 
-	bestQuality := boosty.GetMaxQualityVariant(masterpl.Variants)
+	bestQuality := GetMaxQualityVariant(masterpl.Variants)
 	fmt.Println(bestQuality)
 
 	fmt.Println(bestQuality.URI)

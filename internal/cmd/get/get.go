@@ -1,12 +1,14 @@
 package get
 
 import (
-	"boosty/pkg/util"
 	"context"
 	"fmt"
 	"net/url"
 	"runtime"
 	"time"
+
+	"boosty/internal/boosty/model"
+	"boosty/pkg/util"
 
 	"boosty/internal/boosty"
 	"github.com/canhlinh/hlsdl"
@@ -67,7 +69,7 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 
 				p, err := client.GetM3u8MasterPlaylist(video.PlaylistUrl)
 				util.CheckError(err)
-				bestQuality := boosty.GetMaxQualityVariant(p.Variants)
+				bestQuality := model.GetMaxQualityVariant(p.Variants)
 				playlistUrl, _ := url.Parse(video.PlaylistUrl)
 				downloadUrl := "https://" + playlistUrl.Host + bestQuality.URI
 				fmt.Printf("Best Quality URL: %s\n", downloadUrl)

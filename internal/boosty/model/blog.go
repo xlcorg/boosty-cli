@@ -1,11 +1,11 @@
-package boosty
+package model
 
 type Blog struct {
 	Title        string
 	URL          string
 	Stats        BlogCount
 	AccessRights BlogAccessRights
-	IsSubscribed bool
+	IsSubscribed BoolValue
 }
 
 type BlogCount struct {
@@ -65,7 +65,7 @@ type V1GetBlogResponse struct {
 	CoverUrl               string            `json:"coverUrl"`
 	AccessRights           BlogAccessRights  `json:"accessRights"`
 	Description            []BlogDescription `json:"description"`
-	IsSubscribed           bool              `json:"isSubscribed"`
+	IsSubscribed           BoolValue         `json:"isSubscribed"`
 	Flags                  BlogFlags         `json:"flags"`
 	SignedQuery            string            `json:"signedQuery"`
 	AllowedPromoTypes      []string          `json:"allowedPromoTypes"`

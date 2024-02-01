@@ -1,4 +1,4 @@
-package boosty
+package model
 
 type V1GetPostsResponse struct {
 	Extra struct {
@@ -28,7 +28,7 @@ type Post struct {
 	Details          []PostDetail  `json:"data"`
 	Price            int           `json:"price"`
 	ShowViewsCounter bool          `json:"showViewsCounter"`
-	HasAccess        bool          `json:"hasAccess"`
+	HasAccess        BoolValue     `json:"hasAccess"`
 	IsLiked          bool          `json:"isLiked"`
 	IsPublished      bool          `json:"isPublished"`
 	PublishAt        int64         `json:"publishTime"`

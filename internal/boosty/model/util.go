@@ -1,4 +1,4 @@
-package boosty
+package model
 
 import (
 	"github.com/grafov/m3u8"
