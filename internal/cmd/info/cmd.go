@@ -1,6 +1,8 @@
 package info
 
 import (
+	"boosty/internal/cmd/flags"
+	"boosty/internal/storage"
 	"boosty/internal/util"
 	"context"
 	"fmt"
@@ -10,26 +12,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCommand() *cobra.Command {
+var store storage.Storage
+
+const (
+	blogNameKey = "blog"
+	tokenKey    = "token"
+)
+
+func NewCommand(s storage.Storage) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "info [blog name]",
-		Short: "Display information about a blog.",
+		Use:   "info",
+		Short: "Display information about blog.",
 		Args:  cobra.NoArgs,
 		Run:   executeCommand,
 	}
+
+	store = s
 
 	return cmd
 }
 
 func executeCommand(cmd *cobra.Command, args []string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	blogName, _ := cmd.Flags().GetString("author")
+	blogName := flags.GetValue(blogNameKey, cmd, store)
 	util.CheckError(util.VerifyName(blogName))
 
+	token := flags.GetValue(tokenKey, cmd, store)
 	config := boosty.NewConfig()
-	token, _ := cmd.Flags().GetString("token")
 	if token != "" {
 		config = config.WithToken(token)
 	}

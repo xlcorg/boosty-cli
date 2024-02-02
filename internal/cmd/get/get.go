@@ -1,6 +1,8 @@
 package get
 
 import (
+	"boosty/internal/cmd/flags"
+	"boosty/internal/storage"
 	"boosty/internal/util"
 	"context"
 	"fmt"
@@ -14,9 +16,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var blogName string
+var (
+	store      storage.Storage
+	postsLimit int
+)
 
-func NewCommand() *cobra.Command {
+const (
+	blogNameKey = "blog"
+	tokenKey    = "token"
+)
+
+func NewCommand(s storage.Storage) *cobra.Command {
+	store = s
 	var cmdGet = &cobra.Command{
 		Use:     "get [video id] {directory}",
 		Short:   "Download a video by ID.",
@@ -29,11 +40,11 @@ func NewCommand() *cobra.Command {
 }
 
 func initClientFromFlags(cmd *cobra.Command) *boosty.Client {
-	blogName, _ := cmd.Flags().GetString("author")
+	blogName := flags.GetValue(blogNameKey, cmd, store)
 	util.CheckError(util.VerifyName(blogName))
 
+	token := flags.GetValue(tokenKey, cmd, store)
 	config := boosty.NewConfig()
-	token, _ := cmd.Flags().GetString("token")
 	if token != "" {
 		config = config.WithToken(token)
 	}
@@ -59,7 +70,7 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 	client := initClientFromFlags(cmd)
 	videoId, dir := parseParam(args)
 
-	fmt.Printf("Searching video with ID %s from %s:\n---\n", videoId, blogName)
+	fmt.Printf("Searching video with ID %s:\n---\n", videoId)
 
 	// TODO: refactor download video
 	// video := client.SearchVideo(videoId)

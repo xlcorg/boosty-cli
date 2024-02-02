@@ -1,6 +1,8 @@
 package posts
 
 import (
+	"boosty/internal/cmd/flags"
+	"boosty/internal/storage"
 	"boosty/internal/util"
 	"context"
 	"fmt"
@@ -10,9 +12,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var postsLimit int
+var (
+	store      storage.Storage
+	postsLimit int
+)
 
-func NewCommand() *cobra.Command {
+const (
+	blogNameKey = "blog"
+	tokenKey    = "token"
+)
+
+func NewCommand(s storage.Storage) *cobra.Command {
+	store = s
 	var cmd = &cobra.Command{
 		Use:     "posts [blogName]",
 		Short:   "Display posts",
@@ -34,12 +45,11 @@ func executePostsCommand(cmd *cobra.Command, args []string) {
 		postsLimit = 1
 	}
 
-	blogName, _ := cmd.Flags().GetString("author")
+	blogName := flags.GetValue(blogNameKey, cmd, store)
 	util.CheckError(util.VerifyName(blogName))
 
+	token := flags.GetValue(tokenKey, cmd, store)
 	config := boosty.NewConfig()
-
-	token, _ := cmd.Flags().GetString("token")
 	if token != "" {
 		config = config.WithToken(token)
 	}
