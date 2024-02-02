@@ -19,41 +19,52 @@ var blogName string
 
 func NewCommand() *cobra.Command {
 	var cmdGet = &cobra.Command{
-		Use:   "get [command]",
-		Short: "Display one or many resources.",
-		Args:  cobra.ExactArgs(1),
-		Run:   runGetCommand,
+		Use:     "get [video id] {directory}",
+		Short:   "Download a video by ID.",
+		Args:    cobra.MinimumNArgs(1),
+		Run:     runGetCommand,
+		Aliases: []string{"download"},
 	}
 
-	//cmdGetInfo := newCmdGetInfo()
-
-	//cmdGet.AddCommand(cmdGetInfo, newCmdGetPosts())
-
-	//cmdGetInfo.PersistentFlags().StringVarP(&blogName, "author", "a", "", "author blog")
-	//cmdGet.PersistentFlags().StringVarP(&blogName, "author", "a", "", "author blog")
-	//_ = cmdGetInfo.MarkPersistentFlagRequired("author")
-	//_ = cmdGet.MarkPersistentFlagRequired("author")
-
 	return cmdGet
+}
+
+func initClientFromFlags(cmd *cobra.Command) *boosty.Client {
+	blogName, _ := cmd.Flags().GetString("author")
+	util.CheckError(util.VerifyName(blogName))
+
+	config := boosty.NewConfig()
+	token, _ := cmd.Flags().GetString("token")
+	if token != "" {
+		config = config.WithToken(token)
+	}
+
+	client, err := boosty.NewClientWithConfig(blogName, config)
+	util.CheckError(err)
+
+	return client
+}
+
+func parseParam(args []string) (videoId string, directory string) {
+	videoId = args[0]
+	if len(args) > 1 {
+		directory = args[1]
+	}
+	return
 }
 
 func runGetCommand(cmd *cobra.Command, args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	blogName, _ := cmd.Flags().GetString("author")
-	util.CheckError(util.VerifyName(blogName))
-
-	videoId := args[1]
-	dir := ""
-	if len(args) > 2 {
-		dir = args[2]
-	}
-
-	client, err := boosty.NewClient(blogName)
-	util.CheckError(err)
+	client := initClientFromFlags(cmd)
+	videoId, dir := parseParam(args)
 
 	fmt.Printf("Searching video with ID %s from %s:\n---\n", videoId, blogName)
+
+	// TODO: refactor download video
+	// video := client.SearchVideo(videoId)
+	// hlsDL := hlsdl.New(video, downloadUrl)
 
 	posts, err := client.GetPosts(ctx, 10)
 	util.CheckError(err)
@@ -74,7 +85,7 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 				downloadUrl := "https://" + playlistUrl.Host + bestQuality.URI
 				fmt.Printf("Best Quality URL: %s\n", downloadUrl)
 				fmt.Println("---")
-				fmt.Println("Starting download...")
+				fmt.Printf("Starting download... [%d CPU]\n", runtime.NumCPU())
 
 				hlsDL := hlsdl.New(downloadUrl, nil, dir, videoId+".mp4", runtime.NumCPU(), true)
 
