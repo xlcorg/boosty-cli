@@ -31,9 +31,9 @@ type Post struct {
 	HasAccess        BoolValue     `json:"hasAccess"`
 	IsLiked          bool          `json:"isLiked"`
 	IsPublished      bool          `json:"isPublished"`
-	PublishAt        int64         `json:"publishTime"`
-	CreatedAt        int64         `json:"createdAt"`
-	UpdatedAt        int64         `json:"updatedAt"`
+	PublishAt        Timestamp     `json:"publishTime"`
+	CreatedAt        Timestamp     `json:"createdAt"`
+	UpdatedAt        Timestamp     `json:"updatedAt"`
 }
 
 type Tag struct {

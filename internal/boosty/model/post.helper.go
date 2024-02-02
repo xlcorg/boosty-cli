@@ -1,7 +1,6 @@
 package model
 
 import (
-	"boosty/internal/util"
 	"fmt"
 	"strings"
 	"time"
@@ -33,10 +32,8 @@ func (p *Post) String() string {
 	var builder strings.Builder
 	builder.Grow(1024)
 
-	createdTime := util.UnixSecondsToTime(p.CreatedAt)
-
 	builder.WriteString(fmt.Sprintf("%-10s%s\n", "Пост:", p.Title))
-	builder.WriteString(fmt.Sprintf("%-10s%s\n", "Создано:", createdTime.Format("02 Jan 15:04")))
+	builder.WriteString(fmt.Sprintf("%-10s%s\n", "Создано:", p.CreatedAt.Time().Format("02 Jan 15:04")))
 	builder.WriteString(fmt.Sprintf("%-10s%s\n", "Доступ", p.HasAccess))
 
 	for i := 0; i < len(p.Details); i++ {
