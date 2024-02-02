@@ -1,11 +1,8 @@
 package endpoint
 
 import (
-	"context"
-	"errors"
 	"fmt"
-
-	"boosty/pkg/logger"
+	"log"
 )
 
 //go:generate stringer -linecomment -type=Endpoint
@@ -35,6 +32,6 @@ func (c Config) Get(e Endpoint) string {
 		return val
 	}
 
-	logger.Error(context.Background(), errors.New("not found endpoint"), "key doesn't exists", "key", e)
+	log.Fatal("not found endpoint")
 	return ""
 }

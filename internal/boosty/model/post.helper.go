@@ -1,11 +1,10 @@
 package model
 
 import (
+	"boosty/internal/util"
 	"fmt"
 	"strings"
 	"time"
-
-	"boosty/pkg/util"
 )
 
 func (p *Post) GetVideos() []*Video {

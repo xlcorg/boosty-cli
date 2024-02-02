@@ -3,13 +3,14 @@ package logger
 import (
 	"os"
 
+	gelf "github.com/snovichkov/zap-gelf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 var globalLogger *zap.SugaredLogger
 
-func Init(debug bool) {
+func InitLocal(debug bool) {
 	level := zapcore.InfoLevel
 	if debug {
 		level = zapcore.DebugLevel
@@ -17,6 +18,29 @@ func Init(debug bool) {
 
 	globalLogger = zap.New(
 		createConsoleCore(level),
+		zap.AddStacktrace(zap.LevelEnablerFunc(func(l zapcore.Level) bool {
+			return zapcore.PanicLevel.Enabled(l)
+		})),
+	).Sugar()
+}
+
+func Init(serviceName string, graylogEndpoint string, debug bool) {
+	level := zapcore.InfoLevel
+	if debug {
+		level = zapcore.DebugLevel
+	}
+
+	core, err := gelf.NewCore(
+		gelf.Host(serviceName),
+		gelf.Addr(graylogEndpoint),
+		gelf.Level(level),
+	)
+	if err != nil {
+		globalLogger.Panic("gelf.NewCore", "error", err)
+	}
+
+	globalLogger = zap.New(
+		zapcore.NewTee(core, createConsoleCore(level)),
 		zap.AddStacktrace(zap.LevelEnablerFunc(func(l zapcore.Level) bool {
 			return zapcore.PanicLevel.Enabled(l)
 		})),

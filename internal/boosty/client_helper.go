@@ -12,7 +12,7 @@ import (
 
 	"boosty/internal/boosty/endpoint"
 	"boosty/internal/boosty/model"
-	"boosty/pkg/logger"
+	"boosty/internal/logger"
 	"github.com/grafov/m3u8"
 )
 

@@ -1,13 +1,12 @@
 package info
 
 import (
+	"boosty/internal/util"
 	"context"
 	"fmt"
 	"time"
 
 	"boosty/internal/boosty"
-	"boosty/pkg/util"
-
 	"github.com/spf13/cobra"
 )
 

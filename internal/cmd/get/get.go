@@ -1,16 +1,15 @@
 package get
 
 import (
+	"boosty/internal/util"
 	"context"
 	"fmt"
 	"net/url"
 	"runtime"
 	"time"
 
-	"boosty/internal/boosty/model"
-	"boosty/pkg/util"
-
 	"boosty/internal/boosty"
+	"boosty/internal/boosty/model"
 	"github.com/canhlinh/hlsdl"
 	"github.com/spf13/cobra"
 )
