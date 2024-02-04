@@ -5,6 +5,7 @@ import (
 	"boosty/internal/storage"
 	"boosty/internal/util"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -46,6 +47,11 @@ func executeCommand(cmd *cobra.Command, args []string) {
 	}
 
 	client, err := boosty.NewClientWithConfig(blogName, config)
+	if err != nil {
+		if errors.Is(err, boosty.ErrUserUnathorized) {
+			store.Delete(tokenKey)
+		}
+	}
 	util.CheckError(err)
 
 	fmt.Printf("Getting information about: %s\n---\n", blogName)

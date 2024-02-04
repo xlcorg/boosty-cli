@@ -9,9 +9,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	DefaultBlogName = "dinablin"
+)
+
 func TestClient(t *testing.T) {
-	client, err := NewClient("dinablin")
+	client, err := NewClient(DefaultBlogName)
 	assert.NoError(t, err)
+
+	t.Run("Invalid token", func(t *testing.T) {
+		conf := NewConfig().WithDebugEnable().WithToken("42")
+		client, err := NewClientWithConfig(DefaultBlogName, conf)
+		assert.NoError(t, err)
+
+		_, err = client.GetBlog(context.Background())
+		assert.Error(t, err)
+	})
 
 	t.Run("GetBlog", func(t *testing.T) {
 		blog, err := client.GetBlog(context.Background())

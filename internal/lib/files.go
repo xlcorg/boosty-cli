@@ -1,4 +1,4 @@
-package fs
+package lib
 
 import (
 	"bufio"
@@ -17,10 +17,6 @@ type File string
 
 func (f File) String() string {
 	return string(f)
-}
-
-func NewFile(path string) File {
-	return File(path).ExpandEnv()
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -86,6 +82,18 @@ func (f File) WriteAllText(text string) error {
 	return f.WriteAllBytes([]byte(text))
 }
 
+func (f File) AppendAllText(text string) error {
+	file, err := os.OpenFile(f.String(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("os.OpenFile(): %v", err)
+	}
+	defer file.Close()
+	if _, err := file.WriteString(text); err != nil {
+		return fmt.Errorf("file.WriteString(): %v", err)
+	}
+	return nil
+}
+
 func (f File) CreateFileForWrite() (io.WriteCloser, error) {
 	file, err := os.Create(os.ExpandEnv(string(f)))
 	if err != nil {
@@ -112,11 +120,12 @@ func (f File) CreateDirectoryIfNotExist() error {
 }
 
 func (f File) ExpandEnv() File {
-	filePath := f.String()
+	filePath := strings.TrimSpace(f.String())
 	if strings.HasPrefix(filePath, "~/") {
 		dirname, _ := os.UserHomeDir()
 		filePath = filepath.Join(dirname, filePath[2:])
 	}
+
 	return File(filePath)
 }
 

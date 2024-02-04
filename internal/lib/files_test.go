@@ -1,4 +1,4 @@
-package fs
+package lib
 
 import (
 	"path/filepath"
@@ -104,7 +104,7 @@ func TestReadLines(t *testing.T) {
 	})
 }
 
-func TestFile_WriteAllText(t *testing.T) {
+func TestFile_Write(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		file := File("test.txt")
 		defer file.DeleteFile()
@@ -116,6 +116,27 @@ func TestFile_WriteAllText(t *testing.T) {
 		empty, err := file.IsEmptyFile()
 		assert.NoError(t, err)
 		assert.True(t, empty)
+	})
+
+	t.Run("append", func(t *testing.T) {
+		file := File("test.txt")
+		defer file.DeleteFile()
+
+		err := file.AppendAllText("hello")
+		assert.NoError(t, err)
+		assert.True(t, file.Exists())
+
+		text, err := file.ReadAllText()
+		assert.NoError(t, err)
+		assert.Equal(t, "hello", text)
+
+		err = file.AppendAllText("world")
+		assert.NoError(t, err)
+		assert.True(t, file.Exists())
+
+		text, err = file.ReadAllText()
+		assert.NoError(t, err)
+		assert.Equal(t, "helloworld", text)
 	})
 
 	t.Run("just works", func(t *testing.T) {

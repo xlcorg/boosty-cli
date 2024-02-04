@@ -16,6 +16,10 @@ import (
 	"github.com/grafov/m3u8"
 )
 
+var (
+	ErrUserUnathorized = errors.New("Unathorized")
+)
+
 func (c *Client) GetPosts(ctx context.Context, limit int) (model.Posts, error) {
 	values := url.Values{}
 	values.Add("limit", strconv.Itoa(limit))
@@ -84,10 +88,17 @@ func (c *Client) sendRequest(ctx context.Context, e endpoint.Endpoint, values ur
 			"requestAttempt", ti.RequestAttempt,
 			"remoteAddr", ti.RemoteAddr.String(),
 		)
-
 	}
 	if err != nil {
 		return nil, fmt.Errorf("do request: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		if resp.StatusCode() == 401 {
+			// {"error_description":"Authorization required","error":"unauthorized"}
+			return nil, ErrUserUnathorized
+		}
+		return nil, fmt.Errorf("do request: %v", resp.Status())
 	}
 
 	return bytes.NewReader(resp.Body()), nil

@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"boosty/internal/lib/fs"
+	. "boosty/internal/lib"
 	"fmt"
 	"io"
 	"strings"
@@ -19,12 +19,12 @@ type StorageCloser interface {
 }
 
 type storage struct {
-	file  fs.File
+	file  File
 	items map[string]string
 }
 
 func New(settingPath string) (StorageCloser, error) {
-	file := fs.NewFile(settingPath)
+	file := File(settingPath).ExpandEnv()
 	items := make(map[string]string)
 
 	if file.Exists() {
