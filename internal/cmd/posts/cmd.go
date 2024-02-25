@@ -1,12 +1,14 @@
 package posts
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
 	"boosty/internal/cmd/flags"
 	"boosty/internal/storage"
 	"boosty/internal/util"
-	"context"
-	"fmt"
-	"time"
 
 	"boosty/internal/boosty"
 	"github.com/spf13/cobra"
@@ -60,7 +62,15 @@ func executePostsCommand(cmd *cobra.Command, args []string) {
 	fmt.Printf("Getting %d posts: %s\n---\n", postsLimit, blogName)
 
 	posts, err := client.GetPosts(ctx, postsLimit)
-	util.CheckError(err)
+	if err != nil {
+		if errors.Is(err, boosty.ErrUserUnauthorized) {
+			fmt.Println("Unauthorized. Token has been expired")
+			store.Delete(tokenKey)
+			fmt.Println("Token has been removed. Try again")
+			return
+		}
+		util.CheckError(err)
+	}
 
 	for _, post := range posts {
 		fmt.Println(post)

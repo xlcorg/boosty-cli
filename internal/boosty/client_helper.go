@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	ErrUserUnathorized = errors.New("Unathorized")
+	ErrUserUnauthorized = errors.New("unauthorized or token has been expired")
 )
 
 func (c *Client) GetPosts(ctx context.Context, limit int) (model.Posts, error) {
@@ -96,7 +96,7 @@ func (c *Client) sendRequest(ctx context.Context, e endpoint.Endpoint, values ur
 	if resp.StatusCode() != 200 {
 		if resp.StatusCode() == 401 {
 			// {"error_description":"Authorization required","error":"unauthorized"}
-			return nil, ErrUserUnathorized
+			return nil, ErrUserUnauthorized
 		}
 		return nil, fmt.Errorf("do request: %v", resp.Status())
 	}

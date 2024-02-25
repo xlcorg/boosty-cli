@@ -1,13 +1,14 @@
 package info
 
 import (
-	"boosty/internal/cmd/flags"
-	"boosty/internal/storage"
-	"boosty/internal/util"
 	"context"
 	"errors"
 	"fmt"
 	"time"
+
+	"boosty/internal/cmd/flags"
+	"boosty/internal/storage"
+	"boosty/internal/util"
 
 	"boosty/internal/boosty"
 	"github.com/spf13/cobra"
@@ -48,7 +49,7 @@ func executeCommand(cmd *cobra.Command, args []string) {
 
 	client, err := boosty.NewClientWithConfig(blogName, config)
 	if err != nil {
-		if errors.Is(err, boosty.ErrUserUnathorized) {
+		if errors.Is(err, boosty.ErrUserUnauthorized) {
 			store.Delete(tokenKey)
 		}
 	}
@@ -56,7 +57,15 @@ func executeCommand(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Getting information about: %s\n---\n", blogName)
 	blog, err := client.GetBlog(ctx)
-	util.CheckError(err)
+	if err != nil {
+		if errors.Is(err, boosty.ErrUserUnauthorized) {
+			fmt.Println("Unauthorized. Token has been expired")
+			store.Delete(tokenKey)
+			fmt.Println("Token has been removed. Try again")
+			return
+		}
+		util.CheckError(err)
+	}
 
 	fmt.Println(blog)
 	fmt.Println("---")
