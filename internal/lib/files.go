@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -111,7 +110,7 @@ func (f File) OpenFileForRead() (io.ReadCloser, error) {
 }
 
 func (f File) CreateDirectoryIfNotExist() error {
-	baseDir := path.Dir(f.String())
+	baseDir := filepath.Dir(f.String())
 	info, err := os.Stat(baseDir)
 	if err == nil && info.IsDir() {
 		return nil
