@@ -1,24 +1,34 @@
-# workflow name
-name: Generate release-artifacts
 
-# on events
 on:
   push:
     branches: [ "main" ]
 
-# workflow tasks
+permissions:
+  contents: write
+  packages: write
+
 jobs:
-  generate:
-    name: Generate cross-platform builds
+  releases-matrix:
+    name: Release Go Binary
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+          - goarch: arm64
+            goos: windows
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-      - name: Generate build files
-        uses: thatisuday/go-cross-build@v1
+      - uses: actions/checkout@v4
+      - uses: wangyoucao577/go-release-action@v1
         with:
-          platforms: 'linux/amd64, darwin/amd64, windows/amd64'
-          package: ''
-          name: 'boosty'
-          compress: 'true'
-          dest: 'dist'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "latest"
+          project_path: "."
+          binary_name: "boosty"
+          build_command: "make build"
