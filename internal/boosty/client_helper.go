@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"strconv"
 
 	"boosty/internal/boosty/endpoint"
 	"boosty/internal/boosty/model"
@@ -18,13 +17,42 @@ import (
 
 var (
 	ErrUserUnauthorized = errors.New("unauthorized or token has been expired")
+	ErrInternalServer   = errors.New("internal server error")
+	ErrPostNotFound     = errors.New("post not found")
 )
 
-func (c *Client) GetPosts(ctx context.Context, limit int) (model.Posts, error) {
-	values := url.Values{}
-	values.Add("limit", strconv.Itoa(limit))
+func (c *Client) GetPostIterator(a Args) func(ctx context.Context) (model.Posts, error) {
+	args := a
+	done := false
+	return func(ctx context.Context) (model.Posts, error) {
+		if done {
+			return nil, ErrPostNotFound
+		}
 
-	body, err := c.sendRequest(ctx, endpoint.GetPosts, values)
+		body, err := c.sendRequest(ctx, endpoint.GetPosts, args.QueryParams())
+		if err != nil {
+			return nil, err
+		}
+
+		var data model.V1GetPostsResponse
+		if err := json.NewDecoder(body).Decode(&data); err != nil {
+			return nil, fmt.Errorf("parse body: %w", err)
+		}
+
+		args.Offset = data.Extra.Offset
+		done = data.Extra.IsLast
+
+		var res = make([]*model.Post, 0, len(data.Data))
+		for i := 0; i < len(data.Data); i++ {
+			res = append(res, &data.Data[i])
+		}
+
+		return res, nil
+	}
+}
+
+func (c *Client) GetPosts(ctx context.Context, args Args) (model.Posts, error) {
+	body, err := c.sendRequest(ctx, endpoint.GetPosts, args.QueryParams())
 	if err != nil {
 		return nil, err
 	}
@@ -93,15 +121,16 @@ func (c *Client) sendRequest(ctx context.Context, e endpoint.Endpoint, values ur
 		return nil, fmt.Errorf("do request: %w", err)
 	}
 
-	if resp.StatusCode() != 200 {
-		if resp.StatusCode() == 401 {
-			// {"error_description":"Authorization required","error":"unauthorized"}
-			return nil, ErrUserUnauthorized
-		}
+	switch resp.StatusCode() {
+	case 200:
+		return bytes.NewReader(resp.Body()), nil
+	case 401:
+		return nil, ErrUserUnauthorized
+	case 400, 403, 500:
+		return nil, ErrInternalServer
+	default:
 		return nil, fmt.Errorf("do request: %v", resp.Status())
 	}
-
-	return bytes.NewReader(resp.Body()), nil
 }
 
 func (c *Client) GetM3u8MasterPlaylist(url string) (*m3u8.MasterPlaylist, error) {

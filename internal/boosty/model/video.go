@@ -1,9 +1,14 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
+)
+
+var (
+	ErrVideoNotFound = errors.New("video not found")
 )
 
 type Video struct {
@@ -26,4 +31,16 @@ func (v *Video) String() string {
 	builder.WriteString(fmt.Sprintf("%-15s%s", "URL:", v.PlaylistUrl))
 
 	return builder.String()
+}
+
+func (p Posts) FindVideo(videoId string) (*Video, error) {
+	for _, post := range p {
+		videos := post.GetVideos()
+		for _, v := range videos {
+			if v.Id == videoId {
+				return v, nil
+			}
+		}
+	}
+	return nil, ErrVideoNotFound
 }

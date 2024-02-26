@@ -61,7 +61,7 @@ func executePostsCommand(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Getting %d posts: %s\n---\n", postsLimit, blogName)
 
-	posts, err := client.GetPosts(ctx, postsLimit)
+	posts, err := client.GetPosts(ctx, boosty.Args{Limit: postsLimit})
 	if err != nil {
 		if errors.Is(err, boosty.ErrUserUnauthorized) {
 			fmt.Println("Unauthorized. Token has been expired")

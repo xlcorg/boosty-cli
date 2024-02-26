@@ -1,14 +1,16 @@
 package get
 
 import (
-	"boosty/internal/cmd/flags"
-	"boosty/internal/storage"
-	"boosty/internal/util"
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"runtime"
 	"time"
+
+	"boosty/internal/cmd/flags"
+	"boosty/internal/storage"
+	"boosty/internal/util"
 
 	"boosty/internal/boosty"
 	"boosty/internal/boosty/model"
@@ -64,7 +66,7 @@ func parseParam(args []string) (videoId string, directory string) {
 }
 
 func runGetCommand(cmd *cobra.Command, args []string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	client := initClientFromFlags(cmd)
@@ -72,42 +74,54 @@ func runGetCommand(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Searching video with ID %s:\n---\n", videoId)
 
-	// TODO: refactor download video
-	// video := client.SearchVideo(videoId)
-	// hlsDL := hlsdl.New(video, downloadUrl)
+	nextPosts := client.GetPostIterator(boosty.Args{
+		Limit: 10,
+	})
 
-	posts, err := client.GetPosts(ctx, 10)
+	video := &model.Video{}
+	for {
+		posts, err := nextPosts(ctx)
+		if errors.Is(err, boosty.ErrPostNotFound) {
+			fmt.Printf("Not found video with ID %s\n", videoId)
+			return
+		}
+		util.CheckError(err)
+
+		video, err = posts.FindVideo(videoId)
+		if err == nil {
+			break
+		}
+		if errors.Is(err, model.ErrVideoNotFound) {
+			continue
+		}
+		util.CheckError(err)
+	}
+
+	fmt.Printf("Video found:\n")
+	fmt.Println(video.String())
+
+	downloadUrl, err := getDownloadUrl(client, video)
 	util.CheckError(err)
 
-	for _, post := range posts {
-		videos := post.GetVideos()
-		for _, video := range videos {
-			if video.Id == videoId {
-				fmt.Printf("Video found:\n")
-				fmt.Println(video.String())
-				fmt.Println("---")
-				fmt.Println("Searching for the best quality...")
+	fmt.Println("---")
+	fmt.Printf("Starting download... [%d CPU]\n", runtime.NumCPU())
 
-				p, err := client.GetM3u8MasterPlaylist(video.PlaylistUrl)
-				util.CheckError(err)
-				bestQuality := model.GetMaxQualityVariant(p.Variants)
-				playlistUrl, _ := url.Parse(video.PlaylistUrl)
-				downloadUrl := "https://" + playlistUrl.Host + bestQuality.URI
-				fmt.Printf("Best Quality URL: %s\n", downloadUrl)
-				fmt.Println("---")
-				fmt.Printf("Starting download... [%d CPU]\n", runtime.NumCPU())
+	hlsDL := hlsdl.New(downloadUrl, nil, dir, video.Title+".mp4", runtime.NumCPU(), true)
 
-				hlsDL := hlsdl.New(downloadUrl, nil, dir, videoId+".mp4", runtime.NumCPU(), true)
+	filepath, err := hlsDL.Download()
+	util.CheckError(err)
+	fmt.Println("Saved => ", filepath)
 
-				filepath, err := hlsDL.Download()
-				if err != nil {
-					util.CheckError(err)
-				}
+}
 
-				fmt.Println("Saved => ", filepath)
-				return
-			}
-		}
+func getDownloadUrl(client *boosty.Client, video *model.Video) (string, error) {
+	p, err := client.GetM3u8MasterPlaylist(video.PlaylistUrl)
+	if err != nil {
+		return "", err
 	}
-	fmt.Println("Error: Video not found")
+
+	bestQuality := model.GetMaxQualityVariant(p.Variants)
+	playlistUrl, _ := url.Parse(video.PlaylistUrl)
+
+	return "https://" + playlistUrl.Host + bestQuality.URI, nil
 }
