@@ -6,7 +6,7 @@ import (
 
 const (
 	defaultEndpoint     = "https://api.boosty.to/v1"
-	defaultRetryTimeout = 1 * time.Second
+	defaultRetryTimeout = 10 * time.Second
 	defaultRetryCount   = 5
 )
 

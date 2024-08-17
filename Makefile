@@ -1,7 +1,7 @@
 
 GO_PACKAGES=$(shell go list ./...)
 
-FLAGS="-X main.version=v0.1.4"
+FLAGS="-X main.version=v0.1.5"
 
 .PHONY: run
 run:
